@@ -74,15 +74,7 @@ export function readAccounts(from: number, to: number){
         const uint8PrivKey = new Uint8Array(accountObj.privKeyBytesArr);
 
         const account = new AptosAccount(uint8PrivKey, accountObj.address)
-
-        console.log("Original: ")
-        console.log({
-            privKey: accountObj.privHex,
-            pubKey: accountObj.pubHex
-        })
-
-        console.log("Recovered: ")
-        console.log(account.toPrivateKeyObject())
+        accounts.push(account);
     }
-
-}
+    return accounts;
+}   

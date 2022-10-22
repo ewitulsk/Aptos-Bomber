@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs"
 import {program} from "commander";
 import { genAccounts, readAccounts } from "./accounts/accounts";
+import { createMintTransaction, getStartTimestamp } from "./transactions/transactions";
 
 async function main(){
     program
@@ -11,10 +12,25 @@ async function main(){
 
     const opts = program.opts();
     if(opts.gen){
-        genAccounts(opts.gen as number)
+        genAccounts(opts.gen as number);
+        return;
     }
 
-    // readAccounts(0, 20);
+    let startTime = await getStartTimestamp();
+
+    // const NODE_URL = "https://fullnode.mainnet.aptoslabs.com/v1";
+    // const client = new AptosClient(NODE_URL);
+    // const accounts = readAccounts(0, 19);
+    
+    // const testAccount = accounts[0];
+
+    // const mintTxn = await createMintTransaction(client, testAccount, BigInt(500), BigInt(100));
+
+    // const transactionRes = await client.submitSignedBCSTransaction(mintTxn);
+
+    // await client.waitForTransaction(transactionRes.hash);
+
+    // console.log(transactionRes.hash)
 
     // Generates key pair for Alice
     // const alice = new AptosAccount();
