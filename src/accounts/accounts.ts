@@ -1,4 +1,4 @@
-import { AptosClient, AptosAccount, FaucetClient, BCS, TxnBuilderTypes, HexString} from "aptos";
+import { AptosClient, AptosAccount, FaucetClient, BCS, TxnBuilderTypes, HexString, CoinClient} from "aptos";
 import path from "path";
 import fs from "fs";
 const accountsPath = path.join(__dirname, "../");
@@ -78,3 +78,25 @@ export function readAccounts(from: number, to: number){
     }
     return accounts;
 }   
+
+export async function dustAccounts(client: AptosClient, whaleAccount: AptosAccount, botAccounts: AptosAccount[]){
+    const coinClient = new CoinClient(client); 
+    const BOT_BALANCE = BigInt(200000000)
+    const requiredWhaleBalance = BOT_BALANCE * BigInt(botAccounts.length);
+
+    const whaleBalance = await coinClient.checkBalance(whaleAccount);
+    if(whaleBalance < requiredWhaleBalance){
+        throw new Error(`Whale does not have enough token! Needed: ${requiredWhaleBalance}, Has: ${whaleBalance}`);
+    }
+
+    botAccounts.forEach(async (bot) => {
+        const botBal = await coinClient.checkBalance(bot);
+        if(botBal >= BOT_BALANCE){
+            return;
+        }
+        const dif = BOT_BALANCE - botBal;
+        console.log(`Funding ${dif.toString()} to ${bot.address()}`);
+        await coinClient.transfer(whaleAccount, bot, dif);
+    })
+    console.log("Done");
+}
