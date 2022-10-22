@@ -82,21 +82,29 @@ export function readAccounts(from: number, to: number){
 export async function dustAccounts(client: AptosClient, whaleAccount: AptosAccount, botAccounts: AptosAccount[]){
     const coinClient = new CoinClient(client); 
     const BOT_BALANCE = BigInt(200000000)
-    const requiredWhaleBalance = BOT_BALANCE * BigInt(botAccounts.length);
+    // const requiredWhaleBalance = BOT_BALANCE * BigInt(botAccounts.length);
 
-    const whaleBalance = await coinClient.checkBalance(whaleAccount);
-    if(whaleBalance < requiredWhaleBalance){
-        throw new Error(`Whale does not have enough token! Needed: ${requiredWhaleBalance}, Has: ${whaleBalance}`);
-    }
+    // const whaleBalance = await coinClient.checkBalance(whaleAccount);
+    // if(whaleBalance < requiredWhaleBalance){
+    //     throw new Error(`Whale does not have enough token! Needed: ${requiredWhaleBalance}, Has: ${whaleBalance}`);
+    // }
 
-    botAccounts.forEach(async (bot) => {
-        const botBal = await coinClient.checkBalance(bot);
+    for(const bot of botAccounts){
+        let botBal;
+        try{
+            botBal = await coinClient.checkBalance(bot);
+        }
+        catch(e){
+            botBal = BigInt(0);
+        }
         if(botBal >= BOT_BALANCE){
-            return;
+            console.log("Bot Bal Good!")
+            continue;
         }
         const dif = BOT_BALANCE - botBal;
         console.log(`Funding ${dif.toString()} to ${bot.address()}`);
-        await coinClient.transfer(whaleAccount, bot, dif);
-    })
+        const txn = await coinClient.transfer(whaleAccount, bot, dif);
+        await client.waitForTransaction(txn);
+    }
     console.log("Done");
 }
